@@ -30,9 +30,11 @@ public class Main {
                 FileInputStream fis = new FileInputStream(file);
                 BufferedInputStream bis = new BufferedInputStream(fis);
                 ArchiveOfHolding aoh = new ArchiveOfHolding(bis);
-                System.out.println(aoh.getHeader());
                 bis.close();
                 fis.close();
+                File input = new File(mInputPath);
+                aoh.extractArchive(input, input.getParentFile());
+                System.out.println(aoh.getHeader());
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {

@@ -95,27 +95,31 @@ public class ArchiveOfHolding {
         }
     }
 
+    public void extractArchive(File inputFile, File outputLocation){
+        mHeader.mTable.extract(inputFile, outputLocation, mHeader.mTableOfContentsSize);
+    }
+
     public String getHeader(){
         return mHeader.getTableOfContents();
     }
 
     public String createTableOfContents(File directory){
-        String json = "[";
+        String json = "{";
         if (!directory.isDirectory()) {
             json += addFile(directory);
         } else {
             json += addDirectory(directory);
         }
-        json += "]";
+        json += "}";
         return json;
     }
 
     protected String addFile(File file){
-        String json = "{";
+        String json = "";
         long length = file.length();
         String name = file.getName();
         long start = position;
-        json += "\"name\":\"" + name + "\",";
+        json += "\"" + name + "\":{";
         json += "\"start\":\"" + String.valueOf(start) + "\",";
         json += "\"length\":\"" + String.valueOf(length) + "\"}";
         position += length;
@@ -123,8 +127,8 @@ public class ArchiveOfHolding {
     }
 
     protected String addDirectory(File directory){
-        String json = "{\"" + directory.getName() + "\"";
-        json += ":[";
+        String json = "\"" + directory.getName() + "\"";
+        json += ":{";
         File[] files = directory.listFiles();
         //sort to guarantee the same order in ToC as writing
         Arrays.sort(files);
@@ -138,7 +142,7 @@ public class ArchiveOfHolding {
                 json += ",";
             }
         }
-        json += "]}";
+        json += "}";
         return json;
     }
 
