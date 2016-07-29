@@ -12,13 +12,15 @@ import java.util.Arrays;
 public class ArchiveOfHolding {
 
     private static final int MAGIC_NUMBER = 0x616f6321;
-    private long position = 12;
+    private long position = 0;
     private Header mHeader;
     TableOfContents mTable;
+    InputStream mInputStream;
 
     public interface TableOfContents {
         void parseJSON(String json);
         void extract(File inputFile, File outputDirectory, long tableOfContentsSize);
+        ArchiveOfHoldingEntry getEntry(InputStream is, String entryName, String...paths);
     }
 
     private class Header{
@@ -50,30 +52,26 @@ public class ArchiveOfHolding {
             if(magic != MAGIC_NUMBER){
                 return;
             }
+            bytes = new byte[8];
             input.read(bytes);
             bb = ByteBuffer.wrap(bytes);
-            mTableOfContentsSize = bb.getInt();
+            mTableOfContentsSize = bb.getLong();
             BufferedInputStream bis = new BufferedInputStream(input);
-            try {
-                long sizeRemaining = mTableOfContentsSize;
-                mTableJSON = "";
-                byte[] buffer = new byte[5096];
-                int len;
-                while (sizeRemaining > 0) {
-                    if(buffer.length < sizeRemaining){
-                        buffer = new byte[(int)sizeRemaining];
-                    }
-                    len = bis.read(buffer);
-                    if(len == -1){
-                        break;
-                    }
-                    sizeRemaining -= len;
-                    bb = ByteBuffer.wrap(buffer, 0, len);
-                    mTableJSON += new String(buffer, 0, len, Charset.forName("UTF-8"));
+            long sizeRemaining = mTableOfContentsSize;
+            mTableJSON = "";
+            byte[] buffer = new byte[5096];
+            int len;
+            while (sizeRemaining > 0) {
+                if (buffer.length < sizeRemaining) {
+                    buffer = new byte[(int) sizeRemaining];
                 }
-            } finally {
-                bis.close();
-                input.close();
+                len = bis.read(buffer);
+                if (len == -1) {
+                    break;
+                }
+                sizeRemaining -= len;
+                bb = ByteBuffer.wrap(buffer, 0, len);
+                mTableJSON += new String(buffer, 0, len, Charset.forName("UTF-8"));
             }
         }
 
@@ -84,11 +82,9 @@ public class ArchiveOfHolding {
             try {
                 byte[] b = mTableJSON.getBytes(Charset.forName("UTF-8"));
                 dos.writeInt(ArchiveOfHolding.MAGIC_NUMBER);
-                dos.writeInt(b.length);
+                dos.writeLong(b.length);
                 dos.flush();
                 bos.write(b);
-                System.out.println(MAGIC_NUMBER);
-                System.out.println(b.length);
             } finally {
                 dos.close();
                 bos.close();
@@ -106,9 +102,14 @@ public class ArchiveOfHolding {
         try {
             mHeader = new Header(input, toc);
             mTable = toc;
+            mInputStream = input;
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public ArchiveOfHoldingEntry getEntry(String entryName, String...paths){
+        return mTable.getEntry(mInputStream, entryName, paths);
     }
 
     public void extractArchive(File inputFile, File outputLocation){

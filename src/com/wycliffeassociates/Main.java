@@ -1,6 +1,7 @@
 package com.wycliffeassociates;
 
 import com.wycliffeassociates.io.ArchiveOfHolding;
+import com.wycliffeassociates.io.ArchiveOfHoldingEntry;
 import com.wycliffeassociates.io.LanguageLevel;
 
 import java.io.*;
@@ -33,10 +34,35 @@ public class Main {
                 LanguageLevel ll = new LanguageLevel();
                 ArchiveOfHolding aoh = new ArchiveOfHolding(bis, ll);
                 bis.close();
-                fis.close();
+                //fis.close();
                 File input = new File(mInputPath);
                 aoh.extractArchive(input, input.getParentFile());
                 System.out.println(aoh.getHeader());
+
+
+                fis = new FileInputStream(file);
+                ll = new LanguageLevel();
+                aoh = new ArchiveOfHolding(fis, ll);
+
+                ArchiveOfHoldingEntry entry = aoh.getEntry("cmn_ulb_b55_2ti_c04_v04_t02.wav", "cmn", "ulb", "2ti", "04");
+                InputStream wav = entry.getInputStream();
+                File test = new File("test.wav");
+                FileOutputStream fos = new FileOutputStream(test);
+                BufferedOutputStream bos = new BufferedOutputStream(fos);
+                try{
+                    byte[] buffer = new byte[5096];
+                    int len;
+                    while ((len = wav.read(buffer)) != -1) {
+                        bos.write(buffer, 0, len);
+                    }
+                } finally {
+                    bos.close();
+                    fos.close();
+                    fis.close();
+                    wav.close();
+                }
+
+
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {

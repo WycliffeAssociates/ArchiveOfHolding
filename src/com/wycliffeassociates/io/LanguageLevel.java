@@ -14,7 +14,7 @@ import java.util.Set;
  */
 public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
 
-    Map<String,Map<String, Map<String, Map<String, Map<String, Map<String, Map<String, String>>>>>>> wat;
+    Map<String,Map<String, Map<String, Map<String, Map<String, Map<String, Map<String, String>>>>>>> mMap;
 
     public LanguageLevel(){}
 
@@ -24,14 +24,14 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
         Gson gson = new Gson();
         Type type = new TypeToken<Map<String,Map<String, Map<String, Map<String, Map<String, Map<String, Map<String, String>>>>>>>>(){}.getType();
         JsonReader jsr = new JsonReader(new StringReader(json));
-        wat = gson.fromJson(jsr, type);
+        mMap = gson.fromJson(jsr, type);
         long end = System.currentTimeMillis();
         System.out.println("Took " + (end-start) + "ms to parse");
     }
 
     @Override
     public void extract(File inputFile, File outputDirectory, long tableOfContentsSize){
-        Map<String, ?> root = wat.get((String)(wat.keySet().toArray()[0]));
+        Map<String, ?> root = mMap.get((String)(mMap.keySet().toArray()[0]));
         Set<String> languages = root.keySet();
         for(String language : languages){
             Map<String, ?> sourceMap = (Map<String, ?>)root.get(language);
@@ -53,7 +53,7 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
                             long start = Long.parseLong(fileMap.get("start"));
                             long end = Long.parseLong(fileMap.get("length"));
                             try {
-                                writeFile(file, inputFile, start+tableOfContentsSize-4, end);
+                                writeFile(file, inputFile, start+tableOfContentsSize+12, end);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -63,6 +63,21 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
             }
         }
     }
+
+    @Override
+    public ArchiveOfHoldingEntry getEntry(InputStream is, String entryName, String...paths){
+        Map<String, ?> root = mMap.get((String)(mMap.keySet().toArray()[0]));
+        Map<String,?> iterate = root;
+        for(String dir : paths){
+            iterate = (Map<String, ?>)iterate.get(dir);
+        }
+        Map<String, String> entry = (Map<String, String>)iterate.get(entryName);
+        long start = Long.parseLong(entry.get("start"));
+        long length = Long.parseLong(entry.get("length"));
+        ArchiveOfHoldingEntry aohEntry = new ArchiveOfHoldingEntry(is, start, length);
+        return aohEntry;
+    }
+
 
     private void writeFile(File file, File inputFile, long start, long end) throws IOException{
         FileOutputStream fos = new FileOutputStream(file);
