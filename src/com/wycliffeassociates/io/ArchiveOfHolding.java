@@ -14,18 +14,34 @@ public class ArchiveOfHolding {
     private static final int MAGIC_NUMBER = 0x616f6321;
     private long position = 12;
     private Header mHeader;
+    TableOfContents mTable;
+
+    public interface TableOfContents {
+        void parseJSON(String json);
+        void extract(File inputFile, File outputDirectory, long tableOfContentsSize);
+    }
 
     private class Header{
 
-        String mTableOfContents;
+        String mTableJSON;
         long mTableOfContentsSize;
         TableOfContents mTable;
 
         Header(String tableOfContents){
-            mTableOfContents = tableOfContents;
+            mTableJSON = tableOfContents;
         }
 
-        Header(InputStream input) throws IOException {
+        Header(InputStream input, TableOfContents toc) throws IOException{
+            readJsonFromStream(input);
+            mTable = toc;
+            mTable.parseJSON(mTableJSON);
+        }
+
+        long getTableOfContentsSize(){
+            return mTableOfContentsSize;
+        }
+
+        void readJsonFromStream(InputStream input) throws IOException{
             byte[] bytes = new byte[4];
             input.read(bytes);
             ByteBuffer bb = ByteBuffer.wrap(bytes);
@@ -40,7 +56,7 @@ public class ArchiveOfHolding {
             BufferedInputStream bis = new BufferedInputStream(input);
             try {
                 long sizeRemaining = mTableOfContentsSize;
-                mTableOfContents = "";
+                mTableJSON = "";
                 byte[] buffer = new byte[5096];
                 int len;
                 while (sizeRemaining > 0) {
@@ -53,12 +69,12 @@ public class ArchiveOfHolding {
                     }
                     sizeRemaining -= len;
                     bb = ByteBuffer.wrap(buffer, 0, len);
-                    mTableOfContents += new String(buffer, 0, len, Charset.forName("UTF-8"));
+                    mTableJSON += new String(buffer, 0, len, Charset.forName("UTF-8"));
                 }
             } finally {
                 bis.close();
+                input.close();
             }
-            mTable = new TableOfContents(mTableOfContents);
         }
 
         void writeHeader(File output) throws IOException {
@@ -66,7 +82,7 @@ public class ArchiveOfHolding {
             BufferedOutputStream bos = new BufferedOutputStream(fos);
             DataOutputStream dos = new DataOutputStream(bos);
             try {
-                byte[] b = mTableOfContents.getBytes(Charset.forName("UTF-8"));
+                byte[] b = mTableJSON.getBytes(Charset.forName("UTF-8"));
                 dos.writeInt(ArchiveOfHolding.MAGIC_NUMBER);
                 dos.writeInt(b.length);
                 dos.flush();
@@ -79,28 +95,28 @@ public class ArchiveOfHolding {
                 fos.close();
             }
         }
-
-        String getTableOfContents(){
-            return mTableOfContents;
+        String getTableOfContentsJSON(){
+            return mTableJSON;
         }
     }
 
     public ArchiveOfHolding(){}
 
-    public ArchiveOfHolding(InputStream input){
+    public ArchiveOfHolding(InputStream input, TableOfContents toc){
         try {
-            mHeader = new Header(input);
+            mHeader = new Header(input, toc);
+            mTable = toc;
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void extractArchive(File inputFile, File outputLocation){
-        mHeader.mTable.extract(inputFile, outputLocation, mHeader.mTableOfContentsSize);
+        mTable.extract(inputFile, outputLocation, mHeader.getTableOfContentsSize());
     }
 
     public String getHeader(){
-        return mHeader.getTableOfContents();
+        return mHeader.getTableOfContentsJSON();
     }
 
     public String createTableOfContents(File directory){

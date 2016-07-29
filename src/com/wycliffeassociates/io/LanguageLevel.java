@@ -6,32 +6,35 @@ import com.google.gson.stream.JsonReader;
 
 import java.io.*;
 import java.lang.reflect.Type;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * Created by sarabiaj on 7/27/2016.
  */
-public class TableOfContents {
+public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
 
-    //ArrayList<Map<String, ArrayList<Map<String, ArrayList<Map<String, ArrayList<Map<String, ArrayList<Map<String, String>>>>>>>>>> wat;
-    Map<String, Map<String, Map<String, Map<String, Map<String, Map<String, String>>>>>> wat;
+    Map<String,Map<String, Map<String, Map<String, Map<String, Map<String, Map<String, String>>>>>>> wat;
 
+    public LanguageLevel(){}
 
-    public TableOfContents(String json){
+    @Override
+    public void parseJSON(String json){
+        long start = System.currentTimeMillis();
         Gson gson = new Gson();
-        //Type type = new TypeToken<ArrayList<Map<String, ArrayList<Map<String, ArrayList<Map<String, ArrayList<Map<String, ArrayList<Map<String, String>>>>>>>>>>>(){}.getType();
-        Type type = new TypeToken<Map<String, Map<String, Map<String, Map<String, Map<String, Map<String, String>>>>>>>(){}.getType();
+        Type type = new TypeToken<Map<String,Map<String, Map<String, Map<String, Map<String, Map<String, Map<String, String>>>>>>>>(){}.getType();
         JsonReader jsr = new JsonReader(new StringReader(json));
         wat = gson.fromJson(jsr, type);
-        System.out.println(wat.size());
+        long end = System.currentTimeMillis();
+        System.out.println("Took " + (end-start) + "ms to parse");
     }
 
+    @Override
     public void extract(File inputFile, File outputDirectory, long tableOfContentsSize){
-        Set<String> languages = wat.keySet();
+        Map<String, ?> root = wat.get((String)(wat.keySet().toArray()[0]));
+        Set<String> languages = root.keySet();
         for(String language : languages){
-            Map<String, ?> sourceMap = wat.get(language);
+            Map<String, ?> sourceMap = (Map<String, ?>)root.get(language);
             Set<String> sources = sourceMap.keySet();
             for(String source : sources){
                 Map<String, ?> bookMap = (Map<String,?>)(sourceMap.get(source));
@@ -88,24 +91,5 @@ public class TableOfContents {
             bis.close();
             fis.close();
         }
-    }
-
-    private void extractFiles(File outputDirectory, List<Map<String, ?>> files){
-        for(Map<String, ?> map : files){
-            Set<String> keys = map.keySet();
-            for(String key : keys){
-                Object o = map.get(key);
-                if(o instanceof String){
-          //          keys.
-                } else {
-
-                }
-            }
-        }
-    }
-
-
-    public int length(){
-        return wat.size();
     }
 }

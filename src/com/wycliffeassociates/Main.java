@@ -1,6 +1,7 @@
 package com.wycliffeassociates;
 
 import com.wycliffeassociates.io.ArchiveOfHolding;
+import com.wycliffeassociates.io.LanguageLevel;
 
 import java.io.*;
 
@@ -29,7 +30,8 @@ public class Main {
             try {
                 FileInputStream fis = new FileInputStream(file);
                 BufferedInputStream bis = new BufferedInputStream(fis);
-                ArchiveOfHolding aoh = new ArchiveOfHolding(bis);
+                LanguageLevel ll = new LanguageLevel();
+                ArchiveOfHolding aoh = new ArchiveOfHolding(bis, ll);
                 bis.close();
                 fis.close();
                 File input = new File(mInputPath);
