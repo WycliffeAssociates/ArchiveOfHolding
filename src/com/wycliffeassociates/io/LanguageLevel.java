@@ -20,13 +20,10 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
 
     @Override
     public void parseJSON(String json){
-        long start = System.currentTimeMillis();
         Gson gson = new Gson();
         Type type = new TypeToken<Map<String,Map<String, Map<String, Map<String, Map<String, Map<String, Map<String, String>>>>>>>>(){}.getType();
         JsonReader jsr = new JsonReader(new StringReader(json));
         mMap = gson.fromJson(jsr, type);
-        long end = System.currentTimeMillis();
-        System.out.println("Took " + (end-start) + "ms to parse");
     }
 
     @Override
@@ -66,16 +63,36 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
 
     @Override
     public ArchiveOfHoldingEntry getEntry(InputStream is, String entryName, String...paths){
+        if(mMap == null || mMap.keySet().size() <= 0){
+            return  null;
+        }
         Map<String, ?> root = mMap.get((String)(mMap.keySet().toArray()[0]));
         Map<String,?> iterate = root;
+        Set<String> hasWhatINeed;
         for(String dir : paths){
-            iterate = (Map<String, ?>)iterate.get(dir);
+            hasWhatINeed = iterate.keySet();
+            if(hasWhatINeed != null && hasWhatINeed.contains(dir)) {
+                iterate = (Map<String, ?>) iterate.get(dir);
+            } else {
+                return null;
+            }
         }
-        Map<String, String> entry = (Map<String, String>)iterate.get(entryName);
-        long start = Long.parseLong(entry.get("start"));
-        long length = Long.parseLong(entry.get("length"));
-        ArchiveOfHoldingEntry aohEntry = new ArchiveOfHoldingEntry(is, start, length);
-        return aohEntry;
+        hasWhatINeed = iterate.keySet();
+        String key = null;
+        for(String s : hasWhatINeed){
+            if(s.contains(entryName)){
+                key = s;
+            }
+        }
+        if(key != null) {
+            Map<String, String> entry = (Map<String, String>) iterate.get(key);
+            long start = Long.parseLong(entry.get("start"));
+            long length = Long.parseLong(entry.get("length"));
+            ArchiveOfHoldingEntry aohEntry = new ArchiveOfHoldingEntry(is, start, length, key);
+            return aohEntry;
+        } else {
+            return null;
+        }
     }
 
 

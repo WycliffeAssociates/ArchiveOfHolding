@@ -20,7 +20,7 @@ public class ArchiveOfHolding {
     public interface TableOfContents {
         void parseJSON(String json);
         void extract(File inputFile, File outputDirectory, long tableOfContentsSize);
-        ArchiveOfHoldingEntry getEntry(InputStream is, String entryName, String...paths);
+        ArchiveOfHoldingEntry getEntry(InputStream is, String entryName, String... paths);
     }
 
     private class Header{
@@ -56,16 +56,16 @@ public class ArchiveOfHolding {
             input.read(bytes);
             bb = ByteBuffer.wrap(bytes);
             mTableOfContentsSize = bb.getLong();
-            BufferedInputStream bis = new BufferedInputStream(input);
-            long sizeRemaining = mTableOfContentsSize;
+            int sizeRemaining = (int)mTableOfContentsSize;
+            BoundedInputStream boundedIS = new BoundedInputStream(input, mTableOfContentsSize);
             mTableJSON = "";
-            byte[] buffer = new byte[5096];
+            byte[] buffer = new byte[sizeRemaining];
             int len;
             while (sizeRemaining > 0) {
                 if (buffer.length < sizeRemaining) {
                     buffer = new byte[(int) sizeRemaining];
                 }
-                len = bis.read(buffer);
+                len = boundedIS.read(buffer);
                 if (len == -1) {
                     break;
                 }
@@ -81,7 +81,7 @@ public class ArchiveOfHolding {
             DataOutputStream dos = new DataOutputStream(bos);
             try {
                 byte[] b = mTableJSON.getBytes(Charset.forName("UTF-8"));
-                dos.writeInt(ArchiveOfHolding.MAGIC_NUMBER);
+                dos.writeInt(com.wycliffeassociates.io.ArchiveOfHolding.MAGIC_NUMBER);
                 dos.writeLong(b.length);
                 dos.flush();
                 bos.write(b);

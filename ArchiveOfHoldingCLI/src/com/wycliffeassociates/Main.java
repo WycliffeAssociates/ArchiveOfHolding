@@ -38,13 +38,13 @@ public class Main {
                 File input = new File(mInputPath);
                 aoh.extractArchive(input, input.getParentFile());
                 System.out.println(aoh.getHeader());
-
+                fis.close();
 
                 fis = new FileInputStream(file);
                 ll = new LanguageLevel();
                 aoh = new ArchiveOfHolding(fis, ll);
 
-                ArchiveOfHoldingEntry entry = aoh.getEntry("cmn_ulb_b55_2ti_c04_v04_t02.wav", "cmn", "ulb", "2ti", "04");
+                ArchiveOfHoldingEntry entry = aoh.getEntry("55_2ti_c04_v04", "cmn", "ulb", "2ti", "04");
                 InputStream wav = entry.getInputStream();
                 File test = new File("test.wav");
                 FileOutputStream fos = new FileOutputStream(test);

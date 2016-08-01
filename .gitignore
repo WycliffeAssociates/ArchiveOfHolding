@@ -45,3 +45,11 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+*.xml
+.idea/description.html
+*.class
+*.wav
+*.aoh
+*.jar
+out/production/ArchiveOfHolding/META-INF/MANIFEST.MF
+*.MF

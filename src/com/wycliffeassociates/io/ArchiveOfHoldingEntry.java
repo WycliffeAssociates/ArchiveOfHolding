@@ -11,11 +11,17 @@ public class ArchiveOfHoldingEntry {
     protected InputStream mInputStream;
     protected long mStart;
     protected long mLength;
+    protected String mName;
 
-    public ArchiveOfHoldingEntry(InputStream is, long start, long length){
+    public ArchiveOfHoldingEntry(InputStream is, long start, long length, String name){
         mInputStream = is;
         mStart = start;
         mLength = length;
+        mName = name;
+    }
+
+    public String getName(){
+        return mName;
     }
 
     protected long getStart(){
@@ -30,26 +36,10 @@ public class ArchiveOfHoldingEntry {
         return new ArchiveOfHoldingInputStream(mInputStream, this);
     }
 
-    private class ArchiveOfHoldingInputStream extends InputStream {
-
-        ArchiveOfHoldingEntry mAohEntry;
-        InputStream mInputStream;
-        long bytesRead = 0;
-
+    private class ArchiveOfHoldingInputStream extends BoundedInputStream {
         ArchiveOfHoldingInputStream(InputStream is, ArchiveOfHoldingEntry aohEntry) throws IOException {
-            mInputStream = is;
-            mAohEntry = aohEntry;
+            super(is, aohEntry.getLength());
             is.skip(aohEntry.getStart());
-        }
-
-        @Override
-        public int read() throws IOException {
-            if (mAohEntry.getLength() == bytesRead) {
-                return -1;
-            } else {
-                bytesRead++;
-                return mInputStream.read();
-            }
         }
     }
 }
