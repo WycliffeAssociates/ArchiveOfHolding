@@ -193,11 +193,32 @@ public class ArchiveOfHolding {
     }
 
     public void createArchiveOfHolding(File input){
-        createArchiveOfHolding(input, input.getParentFile());
+        createArchiveOfHolding(input, input.getParentFile(), input.getName(), false);
+    }
+
+    public void createArchiveOfHolding(File input, boolean useTr){
+        createArchiveOfHolding(input, input.getParentFile(), input.getName(), useTr);
+    }
+
+    public void createArchiveOfHolding(File input, File outputDirectory, String name){
+        createArchiveOfHolding(input, input.getParentFile(), name, false);
     }
 
     public void createArchiveOfHolding(File input, File outputDirectory){
-        File output = new File(outputDirectory, "archive.aoh");
+        createArchiveOfHolding(input, outputDirectory, input.getName(), false);
+    }
+
+    public void createArchiveOfHolding(File input, File outputDirectory, boolean useTr){
+        createArchiveOfHolding(input, outputDirectory, input.getName(), useTr);
+    }
+
+    public void createArchiveOfHolding(File input, File outputDirectory, String name, boolean useTr){
+        if(useTr){
+            name += ".tr";
+        } else {
+            name += ".aoh";
+        }
+        File output = new File(outputDirectory, name);
         if(output.exists()){
             output.delete();
         }

@@ -5,68 +5,58 @@ import com.wycliffeassociates.io.ArchiveOfHoldingEntry;
 import com.wycliffeassociates.io.LanguageLevel;
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Main {
 
     static String mCommand;
     static String mInputPath;
     static String mOutputPath;
+    static String mName;
+    static boolean mUseTr;
 
     public static void main(String[] args) {
-        if (args.length < 2 || args.length > 3) {
+        if(!handleArguments(args)){
             printExample();
             return;
-        }
-        mCommand = args[0];
-        mInputPath = args[1];
-        if (args.length == 3) {
-           mOutputPath = args[2];
         }
 
         if(mCommand.compareTo("-c") == 0) {
             ArchiveOfHolding aoh = new ArchiveOfHolding();
-            aoh.createArchiveOfHolding(new File(mInputPath));
+            if(mOutputPath == null) {
+                aoh.createArchiveOfHolding(new File(mInputPath), mUseTr);
+            } else {
+                if(mName == null) {
+                    aoh.createArchiveOfHolding(new File(mInputPath), new File(mOutputPath), mUseTr);
+                } else {
+                    aoh.createArchiveOfHolding(new File(mInputPath), new File(mOutputPath), mName, mUseTr);
+                }
+            }
         } else if (mCommand.compareTo("-x") == 0){
             File file = new File(mInputPath);
+            FileInputStream fis = null;
+            BufferedInputStream bis = null;
             try {
-                FileInputStream fis = new FileInputStream(file);
-                BufferedInputStream bis = new BufferedInputStream(fis);
+                fis = new FileInputStream(file);
+                bis = new BufferedInputStream(fis);
                 LanguageLevel ll = new LanguageLevel();
                 ArchiveOfHolding aoh = new ArchiveOfHolding(bis, ll);
                 bis.close();
-                //fis.close();
                 File input = new File(mInputPath);
                 aoh.extractArchive(input, input.getParentFile());
                 System.out.println(aoh.getHeader());
-                fis.close();
-
-                fis = new FileInputStream(file);
-                ll = new LanguageLevel();
-                aoh = new ArchiveOfHolding(fis, ll);
-
-                ArchiveOfHoldingEntry entry = aoh.getEntry("55_2ti_c04_v04", "cmn", "ulb", "2ti", "04");
-                InputStream wav = entry.getInputStream();
-                File test = new File("test.wav");
-                FileOutputStream fos = new FileOutputStream(test);
-                BufferedOutputStream bos = new BufferedOutputStream(fos);
-                try{
-                    byte[] buffer = new byte[5096];
-                    int len;
-                    while ((len = wav.read(buffer)) != -1) {
-                        bos.write(buffer, 0, len);
-                    }
-                } finally {
-                    bos.close();
-                    fos.close();
-                    fis.close();
-                    wav.close();
-                }
-
-
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    fis.close();
+                } catch (IOException e){
+                    e.printStackTrace();
+                }
             }
         } else {
             printExample();
@@ -81,5 +71,34 @@ public class Main {
                 "aoh -x path/to/archive\n" +
                 "aoh -x path/to/archive path/to/extract/to"
         );
+    }
+
+    public static boolean handleArguments(String[] args){
+        if (args.length < 2 || args.length > 3) {
+            printExample();
+            return false;
+        }
+        List<String> argList = new LinkedList<>(Arrays.asList(args));
+        if(argList.contains("-x")){
+            mCommand = "-x";
+            argList.remove("-x");
+        } else if(argList.contains("-c")) {
+            mCommand = "-c";
+            argList.remove("-c");
+        } else {
+            return false;
+        }
+        if(argList.size() > 0) {
+            mInputPath = argList.remove(0);
+        } else {
+            return false;
+        }
+        if(argList.size() > 0){
+            mOutputPath = argList.remove(0);
+        }
+        if(argList.size() > 0){
+            mName = argList.remove(0);
+        }
+        return true;
     }
 }
