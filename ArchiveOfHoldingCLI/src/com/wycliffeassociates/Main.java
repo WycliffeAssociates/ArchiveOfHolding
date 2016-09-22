@@ -88,6 +88,10 @@ public class Main {
         } else {
             return false;
         }
+        if(argList.contains("-tr")){
+            mUseTr = true;
+            argList.remove("-tr");
+        }
         if(argList.size() > 0) {
             mInputPath = argList.remove(0);
         } else {
