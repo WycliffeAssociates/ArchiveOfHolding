@@ -18,23 +18,40 @@ public class Main {
     static boolean mUseTr;
 
     public static void main(String[] args) {
-        if(!handleArguments(args)){
+        if (!handleArguments(args)) {
             printExample();
             return;
         }
 
-        if(mCommand.compareTo("-c") == 0) {
-            ArchiveOfHolding aoh = new ArchiveOfHolding();
-            if(mOutputPath == null) {
-                aoh.createArchiveOfHolding(new File(mInputPath), mUseTr);
+        if (mCommand.compareTo("-c") == 0) {
+            ArchiveOfHolding aoh = new ArchiveOfHolding(new ArchiveOfHolding.OnProgressListener() {
+                @Override
+                public void onProgressUpdate(int progress) {
+                    System.out.println(progress);
+                }
+            });
+            if (mOutputPath == null) {
+                try {
+                    aoh.createArchiveOfHolding(new File(mInputPath), mUseTr);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             } else {
-                if(mName == null) {
-                    aoh.createArchiveOfHolding(new File(mInputPath), new File(mOutputPath), mUseTr);
+                if (mName == null) {
+                    try {
+                        aoh.createArchiveOfHolding(new File(mInputPath), new File(mOutputPath), mUseTr);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 } else {
-                    aoh.createArchiveOfHolding(new File(mInputPath), new File(mOutputPath), mName, mUseTr);
+                    try {
+                        aoh.createArchiveOfHolding(new File(mInputPath), new File(mOutputPath), mName, mUseTr);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
-        } else if (mCommand.compareTo("-x") == 0){
+        } else if (mCommand.compareTo("-x") == 0) {
             File file = new File(mInputPath);
             FileInputStream fis = null;
             BufferedInputStream bis = null;
@@ -54,7 +71,7 @@ public class Main {
             } finally {
                 try {
                     fis.close();
-                } catch (IOException e){
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -73,34 +90,34 @@ public class Main {
         );
     }
 
-    public static boolean handleArguments(String[] args){
+    public static boolean handleArguments(String[] args) {
         if (args.length < 2 || args.length > 3) {
             printExample();
             return false;
         }
         List<String> argList = new LinkedList<>(Arrays.asList(args));
-        if(argList.contains("-x")){
+        if (argList.contains("-x")) {
             mCommand = "-x";
             argList.remove("-x");
-        } else if(argList.contains("-c")) {
+        } else if (argList.contains("-c")) {
             mCommand = "-c";
             argList.remove("-c");
         } else {
             return false;
         }
-        if(argList.contains("-tr")){
+        if (argList.contains("-tr")) {
             mUseTr = true;
             argList.remove("-tr");
         }
-        if(argList.size() > 0) {
+        if (argList.size() > 0) {
             mInputPath = argList.remove(0);
         } else {
             return false;
         }
-        if(argList.size() > 0){
+        if (argList.size() > 0) {
             mOutputPath = argList.remove(0);
         }
-        if(argList.size() > 0){
+        if (argList.size() > 0) {
             mName = argList.remove(0);
         }
         return true;
