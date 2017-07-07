@@ -11,11 +11,20 @@ import java.util.Arrays;
  */
 public class ArchiveOfHolding {
 
-    private static final int MAGIC_NUMBER = 0x616f6321;
+    public interface OnProgressListener{
+        void onProgressUpdate(int progress);
+    }
+
+    //ASCII aoh!
+    private static final int MAGIC_NUMBER = 0x616f6821;
     private long position = 0;
     private Header mHeader;
     TableOfContents mTable;
     InputStream mInputStream;
+    private OnProgressListener mProgressListener;
+    private long mTotalInputSize;
+    private long mTotalProgress;
+
 
     public interface TableOfContents {
         void parseJSON(String json);
@@ -75,28 +84,25 @@ public class ArchiveOfHolding {
             }
         }
 
-        void writeHeader(File output) throws IOException {
-            FileOutputStream fos = new FileOutputStream(output, true);
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
-            DataOutputStream dos = new DataOutputStream(bos);
-            try {
-                byte[] b = mTableJSON.getBytes(Charset.forName("UTF-8"));
-                dos.writeInt(com.wycliffeassociates.io.ArchiveOfHolding.MAGIC_NUMBER);
-                dos.writeLong(b.length);
-                dos.flush();
-                bos.write(b);
-            } finally {
-                dos.close();
-                bos.close();
-                fos.close();
-            }
+        void writeHeader(OutputStream output) throws IOException {
+            DataOutputStream dos = new DataOutputStream(output);
+            byte[] b = mTableJSON.getBytes(Charset.forName("UTF-8"));
+            dos.writeInt(com.wycliffeassociates.io.ArchiveOfHolding.MAGIC_NUMBER);
+            dos.writeLong(b.length);
+            dos.flush();
+            output.write(b);
         }
+
         String getTableOfContentsJSON(){
             return mTableJSON;
         }
     }
 
     public ArchiveOfHolding(){}
+
+    public ArchiveOfHolding(OnProgressListener progressListener){
+        mProgressListener = progressListener;
+    }
 
     public ArchiveOfHolding(InputStream input, TableOfContents toc){
         try {
@@ -163,7 +169,7 @@ public class ArchiveOfHolding {
         return json;
     }
 
-    protected void writeFiles(File input, File output) throws IOException {
+    protected void writeFiles(File input, OutputStream output) throws IOException {
         if(input.isDirectory()){
             File[] files = input.listFiles();
             //sort to guarantee the same order as ToC
@@ -172,43 +178,97 @@ public class ArchiveOfHolding {
                 writeFiles(f, output);
             }
         } else {
-            FileInputStream fis = new FileInputStream(input);
-            BufferedInputStream bis = new BufferedInputStream(fis);
-            FileOutputStream fos = new FileOutputStream(output, true);
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
-
+            FileInputStream fis = null;
+            BufferedInputStream bis = null;
             try {
-                byte[] buffer = new byte[5096];
+                fis = new FileInputStream(input);
+                bis = new BufferedInputStream(fis);
+
+                byte[] buffer = new byte[20384];
                 int len;
                 while ((len = bis.read(buffer)) != -1) {
-                    bos.write(buffer, 0, len);
+                    output.write(buffer, 0, len);
+                    mTotalProgress += len;
+                    updateProgress();
                 }
             } finally {
                 bis.close();
                 fis.close();
-                bos.close();
-                fos.close();
             }
         }
     }
 
-    public void createArchiveOfHolding(File input){
-        createArchiveOfHolding(input, input.getParentFile());
+    private void updateProgress(){
+        if(mProgressListener != null){
+            //consider the header to be 10% so the remainder is the file progress
+            int percentage = (int)((double)(mTotalProgress) / (double)(mTotalInputSize) * 90.0);
+            mProgressListener.onProgressUpdate(percentage + 10);
+        }
     }
 
-    public void createArchiveOfHolding(File input, File outputDirectory){
-        File output = new File(outputDirectory, "archive.aoh");
+    public void createArchiveOfHolding(File input) throws IOException{
+        createArchiveOfHolding(input, input.getParentFile(), input.getName(), false);
+    }
+
+    public void createArchiveOfHolding(File input, boolean useTr) throws IOException{
+        createArchiveOfHolding(input, input.getParentFile(), input.getName(), useTr);
+    }
+
+    public void createArchiveOfHolding(File input, File outputDirectory, String name) throws IOException{
+        createArchiveOfHolding(input, input.getParentFile(), name, false);
+    }
+
+    public void createArchiveOfHolding(File input, File outputDirectory) throws IOException{
+        createArchiveOfHolding(input, outputDirectory, input.getName(), false);
+    }
+
+    public void createArchiveOfHolding(File input, File outputDirectory, boolean useTr) throws IOException{
+        createArchiveOfHolding(input, outputDirectory, input.getName(), useTr);
+    }
+
+    public void createArchiveOfHolding(File input, File outputDirectory, String name, boolean useTr) throws IOException {
+        if(useTr){
+            name += ".tr";
+        } else {
+            name += ".aoh";
+        }
+        File output = new File(outputDirectory, name);
         if(output.exists()){
             output.delete();
         }
+        FileOutputStream fos = null;
+        BufferedOutputStream bos = null;
+        try {
+            fos = new FileOutputStream(output);
+            bos = new BufferedOutputStream(fos);
+            createArchiveOfHolding(input, bos);
+        } finally {
+            bos.flush();
+            bos.close();
+            fos.close();
+        }
+    }
+
+    public void createArchiveOfHolding(File input, OutputStream output) throws IOException{
+        mTotalInputSize = getTotalProgressSize(input);
         String toc = createTableOfContents(input);
         System.out.println(toc);
         Header header = new Header(toc);
-        try {
-            header.writeHeader(output);
-            writeFiles(input, output);
-        } catch (IOException e) {
-            e.printStackTrace();
+        header.writeHeader(output);
+        writeFiles(input, output);
+    }
+
+    private long getTotalProgressSize(File input) {
+        long total = 0;
+        if (input.isDirectory()) {
+            for (File f : input.listFiles()) {
+                total += getTotalProgressSize(f);
+            }
         }
+        return total + input.length();
+    }
+
+    public void setOnProgressListener(OnProgressListener progressListener){
+        mProgressListener = progressListener;
     }
 }
