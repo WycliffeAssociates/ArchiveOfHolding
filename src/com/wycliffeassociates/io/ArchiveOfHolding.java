@@ -30,6 +30,7 @@ public class ArchiveOfHolding {
         void parseJSON(String json);
         void extract(File inputFile, File outputDirectory, long tableOfContentsSize);
         ArchiveOfHoldingEntry getEntry(InputStream is, String entryName, String... paths);
+        String getVersionSlug(String sourceLanguage);
     }
 
     private class Header{
