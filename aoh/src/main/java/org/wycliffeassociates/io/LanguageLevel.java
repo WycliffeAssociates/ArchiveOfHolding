@@ -1,4 +1,4 @@
-package com.wycliffeassociates.io;
+package org.wycliffeassociates.io;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -95,6 +95,24 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
         }
     }
 
+    @Override
+    public String getVersionSlug(String sourceLanguage) {
+        if(mMap == null || mMap.keySet().size() <= 0){
+            return "";
+        }
+
+        Map<String, ?> root = mMap.get(mMap.keySet().toArray()[0]);
+        Set<String> languages = root.keySet();
+        for(String language : languages){
+            if(language.equals(sourceLanguage)) {
+                Map<String, ?> sourceMap = (Map<String, ?>)root.get(language);
+                Set<String> sources = sourceMap.keySet();
+                return sources.size() > 0 ? (String)sources.toArray()[0] : "";
+            }
+        }
+
+        return "";
+    }
 
     private void writeFile(File file, File inputFile, long start, long end) throws IOException{
         FileOutputStream fos = new FileOutputStream(file);

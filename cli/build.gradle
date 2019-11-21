@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+application {
+    mainClassName = "org.wycliffeassociates.io.AohMain"
+}
+
+dependencies {
+    implementation project(":aoh")
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': "org.wycliffeassociates.io.AohMain"
+        )
+    }
+    from(configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }) {
+        exclude "META-INF/MANIFEST.MF"
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+}

@@ -1,15 +1,15 @@
-package com.wycliffeassociates;
+package org.wycliffeassociates.io;
 
-import com.wycliffeassociates.io.ArchiveOfHolding;
-import com.wycliffeassociates.io.ArchiveOfHoldingEntry;
-import com.wycliffeassociates.io.LanguageLevel;
+import org.wycliffeassociates.io.ArchiveOfHolding;
+import org.wycliffeassociates.io.ArchiveOfHoldingEntry;
+import org.wycliffeassociates.io.LanguageLevel;
 
 import java.io.*;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Main {
+public class AohMain {
 
     static String mCommand;
     static String mInputPath;
