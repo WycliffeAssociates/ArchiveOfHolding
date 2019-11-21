@@ -1,4 +1,4 @@
-package com.wycliffeassociates.io;
+package org.wycliffeassociates.io;
 
 import java.io.IOException;
 import java.io.InputStream;

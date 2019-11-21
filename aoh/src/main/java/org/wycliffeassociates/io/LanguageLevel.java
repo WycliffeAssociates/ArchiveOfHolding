@@ -1,4 +1,4 @@
-package com.wycliffeassociates.io;
+package org.wycliffeassociates.io;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

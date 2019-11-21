@@ -1,4 +1,4 @@
-package com.wycliffeassociates.io;
+package org.wycliffeassociates.io;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -88,7 +88,7 @@ public class ArchiveOfHolding {
         void writeHeader(OutputStream output) throws IOException {
             DataOutputStream dos = new DataOutputStream(output);
             byte[] b = mTableJSON.getBytes(Charset.forName("UTF-8"));
-            dos.writeInt(com.wycliffeassociates.io.ArchiveOfHolding.MAGIC_NUMBER);
+            dos.writeInt(ArchiveOfHolding.MAGIC_NUMBER);
             dos.writeLong(b.length);
             dos.flush();
             output.write(b);
