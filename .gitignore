@@ -53,3 +53,7 @@ Temporary Items
 *.jar
 out/production/ArchiveOfHolding/META-INF/MANIFEST.MF
 *.MF
+.gradle/
+.idea/
+build/
+*.iml

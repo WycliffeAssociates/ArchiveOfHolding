@@ -8,6 +8,8 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by sarabiaj on 7/27/2016.
@@ -62,7 +64,7 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
     }
 
     @Override
-    public ArchiveOfHoldingEntry getEntry(InputStream is, String entryName, String...paths){
+    public ArchiveOfHoldingEntry getEntry(InputStream is, String[] entryName, String...paths){
         if(mMap == null || mMap.keySet().size() <= 0){
             return  null;
         }
@@ -79,9 +81,13 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
         }
         hasWhatINeed = iterate.keySet();
         String key = null;
+        Pattern pattern = this.getChapterAndVersePattern(entryName);
+
         for(String s : hasWhatINeed){
-            if(s.contains(entryName)){
+            Matcher m = pattern.matcher(s);
+            if(m.find()) {
                 key = s;
+                break;
             }
         }
         if(key != null) {
@@ -141,5 +147,22 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
             bis.close();
             fis.close();
         }
+    }
+
+    private Pattern getChapterAndVersePattern(String[] nameParts) {
+        String CHAPTER = "";
+        String VERSE = "";
+
+        if(nameParts[0] != null) {
+            CHAPTER += "c[0]{0,2}" + nameParts[0] + "_";
+        }
+        if(nameParts[1] != null) {
+            VERSE += "(?<!obs_)v[0]{0,2}" + nameParts[1]; // should not be after obs_, for obs files
+        }
+        if(nameParts[2] != null) {
+            VERSE += "-[0]{0,2}" + nameParts[2];
+        }
+
+        return Pattern.compile(CHAPTER + VERSE);
     }
 }
