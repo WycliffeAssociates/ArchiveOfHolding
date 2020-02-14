@@ -64,7 +64,7 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
     }
 
     @Override
-    public ArchiveOfHoldingEntry getEntry(InputStream is, String[] entryName, String...paths){
+    public ArchiveOfHoldingEntry getEntry(InputStream is, ImportantSection importantSection, String...paths){
         if(mMap == null || mMap.keySet().size() <= 0){
             return  null;
         }
@@ -81,7 +81,7 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
         }
         hasWhatINeed = iterate.keySet();
         String key = null;
-        Pattern pattern = this.getChapterAndVersePattern(entryName);
+        Pattern pattern = importantSection.getPattern();
 
         for(String s : hasWhatINeed){
             Matcher m = pattern.matcher(s);
@@ -147,22 +147,5 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
             bis.close();
             fis.close();
         }
-    }
-
-    private Pattern getChapterAndVersePattern(String[] nameParts) {
-        String CHAPTER = "";
-        String VERSE = "";
-
-        if(nameParts[0] != null) {
-            CHAPTER += "c[0]{0,2}" + nameParts[0] + "_";
-        }
-        if(nameParts[1] != null) {
-            VERSE += "(?<!obs_)v[0]{0,2}" + nameParts[1]; // should not be after obs_, for obs files
-        }
-        if(nameParts[2] != null) {
-            VERSE += "-[0]{0,2}" + nameParts[2];
-        }
-
-        return Pattern.compile(CHAPTER + VERSE);
     }
 }

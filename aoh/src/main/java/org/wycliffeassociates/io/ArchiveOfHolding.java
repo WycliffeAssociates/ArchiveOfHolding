@@ -29,7 +29,7 @@ public class ArchiveOfHolding {
     public interface TableOfContents {
         void parseJSON(String json);
         void extract(File inputFile, File outputDirectory, long tableOfContentsSize);
-        ArchiveOfHoldingEntry getEntry(InputStream is, String[] entryName, String... paths);
+        ArchiveOfHoldingEntry getEntry(InputStream is, ImportantSection importantSection, String... paths);
         String getVersionSlug(String sourceLanguage);
     }
 
@@ -115,8 +115,8 @@ public class ArchiveOfHolding {
         }
     }
 
-    public ArchiveOfHoldingEntry getEntry(String[] entryName, String...paths){
-        return mTable.getEntry(mInputStream, entryName, paths);
+    public ArchiveOfHoldingEntry getEntry(ImportantSection importantSection, String...paths){
+        return mTable.getEntry(mInputStream, importantSection, paths);
     }
 
     public void extractArchive(File inputFile, File outputLocation){
