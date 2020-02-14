@@ -50,7 +50,6 @@ Temporary Items
 *.class
 *.wav
 *.aoh
-*.jar
 out/production/ArchiveOfHolding/META-INF/MANIFEST.MF
 *.MF
 .gradle/
