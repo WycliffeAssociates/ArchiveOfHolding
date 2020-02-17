@@ -64,7 +64,7 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
     }
 
     @Override
-    public ArchiveOfHoldingEntry getEntry(InputStream is, ImportantSection importantSection, String...paths){
+    public ArchiveOfHoldingEntry getEntry(InputStream is, ChapterVerseSection chapterVerseSection, String...paths){
         if(mMap == null || mMap.keySet().size() <= 0){
             return  null;
         }
@@ -81,7 +81,7 @@ public class LanguageLevel implements ArchiveOfHolding.TableOfContents {
         }
         hasWhatINeed = iterate.keySet();
         String key = null;
-        Pattern pattern = importantSection.getPattern();
+        Pattern pattern = chapterVerseSection.getPattern();
 
         for(String s : hasWhatINeed){
             Matcher m = pattern.matcher(s);
