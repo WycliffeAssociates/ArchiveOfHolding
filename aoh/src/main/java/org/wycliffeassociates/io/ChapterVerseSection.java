@@ -21,6 +21,12 @@ public class ChapterVerseSection {
         }
     }
 
+    public ChapterVerseSection(String chapter, String firstVerse, String lastVerse) {
+        this.chapter = chapter;
+        this.firstVerse = firstVerse;
+        this.lastVerse = lastVerse;
+    }
+
     public Pattern getPattern() {
         String CHAPTER = "";
         String VERSE = "";
@@ -38,5 +44,17 @@ public class ChapterVerseSection {
         }
 
         return Pattern.compile(CHAPTER + VERSE);
+    }
+
+    public String getChapter() {
+        return chapter;
+    }
+
+    public String getFirstVerse() {
+        return firstVerse;
+    }
+
+    public String getLastVerse() {
+        return lastVerse;
     }
 }
