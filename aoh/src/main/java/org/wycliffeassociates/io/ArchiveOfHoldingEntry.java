@@ -24,7 +24,7 @@ public class ArchiveOfHoldingEntry {
         return mName;
     }
 
-    protected long getStart(){
+    public long getStart(){
         return mStart;
     }
 
@@ -36,10 +36,18 @@ public class ArchiveOfHoldingEntry {
         return new ArchiveOfHoldingInputStream(mInputStream, this);
     }
 
+    public InputStream getInputStream(long skip) throws IOException {
+        return new ArchiveOfHoldingInputStream(mInputStream, this, skip);
+    }
+
     private class ArchiveOfHoldingInputStream extends BoundedInputStream {
         ArchiveOfHoldingInputStream(InputStream is, ArchiveOfHoldingEntry aohEntry) throws IOException {
             super(is, aohEntry.getLength());
             is.skip(aohEntry.getStart());
+        }
+        ArchiveOfHoldingInputStream(InputStream is, ArchiveOfHoldingEntry aohEntry, long skip) throws IOException {
+            super(is, aohEntry.getLength());
+            is.skip(skip);
         }
     }
 }
