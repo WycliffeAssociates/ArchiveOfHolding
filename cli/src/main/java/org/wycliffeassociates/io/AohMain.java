@@ -1,9 +1,5 @@
 package org.wycliffeassociates.io;
 
-import org.wycliffeassociates.io.ArchiveOfHolding;
-import org.wycliffeassociates.io.ArchiveOfHoldingEntry;
-import org.wycliffeassociates.io.LanguageLevel;
-
 import java.io.*;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -24,12 +20,7 @@ public class AohMain {
         }
 
         if (mCommand.compareTo("-c") == 0) {
-            ArchiveOfHolding aoh = new ArchiveOfHolding(new ArchiveOfHolding.OnProgressListener() {
-                @Override
-                public void onProgressUpdate(int progress) {
-                    System.out.println(progress);
-                }
-            });
+            ArchiveOfHolding aoh = new ArchiveOfHolding(System.out::println);
             if (mOutputPath == null) {
                 try {
                     aoh.createArchiveOfHolding(new File(mInputPath), mUseTr);
